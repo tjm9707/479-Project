@@ -10,7 +10,7 @@
   	(cond ((endp LST) nil)
       ((< (car LST) x)
        (notless x (cdr LST)))
-      (t (cons (car LST) (notless x (cdr lst))))))
+      (t (cons (car LST) (notless x (cdr LST))))))
 
 ; 11.10
  (defun qsort (x)
