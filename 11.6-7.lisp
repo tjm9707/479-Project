@@ -1,6 +1,7 @@
 (in-package "ACL2")
 
-(include-book "project/project/perm" :dir :system)
+(include-book "textbook/chap11/perm" :dir :system)
+
 
 
 ; ---------------------------------------------------------------------------
