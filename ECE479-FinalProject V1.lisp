@@ -1,4 +1,14 @@
-; 11.5
+#|
+
+	ECE 479 Final Project
+	Jonah Goetze
+	Thomas Milbauer
+
+	Note: The entire project is in this single file. We had issues certifying and importing books. We believe it is a Proof Pad bug. 
+
+|#
+
+; --------------- 11.5 ----------------
 
 ; Definitions copied from textbook page 193, 194
 
@@ -89,8 +99,7 @@ trans1 only seems to work on the online version of proofpad
 
 |#
 
-; ---------------------------------------------------------------------------
-; Exercise 11.6
+; --------------- 11.6 ----------------
 
 #|
 :trans1(defcong perm perm (append x y) 1)
@@ -100,8 +109,7 @@ trans1 only seems to work on the online version of proofpad
          :RULE-CLASSES (:CONGRUENCE))
 |#
 
-; ---------------------------------------------------------------------------
-; Exercise 11.7
+; --------------- 11.7 ----------------
 
 	; needs a lemma for in
 
@@ -121,24 +129,23 @@ trans1 only seems to work on the online version of proofpad
 (defcong perm perm (append x y) 1))
 (defcong perm perm (append x y) 2))
 
-; ---------------------------------------------------------------------------
-; 11.8
+; --------------- 11.8 ----------------
+
 (defun less (x lst)
   	(cond ((atom lst) nil)
 	((< (car lst) x)
 	 (cons (car lst) (less x (cdr lst))))
 	(t (less x (cdr lst)))))
-; ---------------------------------------------------------------------------
 
-; 11.9
+; --------------- 11.9 ----------------
+
 (defun notless (x lst)
   	(cond ((endp lst) nil)
       ((< (car lst) x)
        (notless x (cdr lst)))
       (t (cons (car lst) (notless x (cdr lst))))))
 
-; ---------------------------------------------------------------------------
-; 11.10
+; --------------- 11.10 ---------------
 	
 	;definition from textbook
  (defun qsort (x)
@@ -160,21 +167,23 @@ trans1 only seems to work on the online version of proofpad
  (defthm perm-qsort
    (perm (qsort x) x))
 
-; ---------------------------------------------------------------------------
-; 11.11
+; --------------- 11.11 ---------------
+
  (defun lessp (x lst)
    (if (endp lst)
        t
      (and (< (car lst) x)
           (lessp x (cdr lst)))))
 
-; ---------------------------------------------------------------------------
-; 11.12
+; --------------- 11.12 ---------------
+
  (defun notlessp (x lst)
    (if (endp lst)
        t
      (and (not (< (car lst) x))
           (notlessp x (cdr lst)))))
+
+; --------------- 11.13 ---------------
 
  (defun orderedp (lst)
    (if (or (endp lst) (endp (cdr lst)))
@@ -182,14 +191,127 @@ trans1 only seems to work on the online version of proofpad
      (and (<= (car lst) (cadr lst))
           (orderedp (cdr lst)))))
 
-; ---------------------------------------------------------------------------
-; 11.13
- (defthm orderedp-append
-   (equal (orderedp (append x y))
-          (if (consp x)
-              (if (consp y)
-                  (and (orderedp x)
-                       (orderedp y)
-                       (<= (car (last x)) (car y)))
-                (orderedp x))
-            (orderedp y))))
+(defthm orderedp-append
+  (equal (orderedp (append x y))
+         (if (consp x)
+             (if (consp y)
+                 (and (orderedp x)
+                      (orderedp y)
+                      (<= (car (last x)) (car y)))
+               (orderedp x))
+           (orderedp y))))
+
+(defcong perm equal (lessp x lst) 2)
+
+(defcong perm equal (notlessp x lst) 2)
+
+; --------------- 11.14 ---------------
+
+(defthm notlessp-notless
+  (notlessp a (notless a lst)))
+
+(defthm lessp-less
+  (lessp a (less a lst)))
+
+(defthm notlessp-implies-not-<
+  (implies (and (notlessp a lst)
+                (member x lst))
+           (not (< x a))))
+
+(defthm lessp-implies-<
+  (implies (and (lessp a lst)
+                (member x lst))
+           (< x a)))
+
+(defthm notlessp-implies-not-<-car
+  (implies (and (notlessp a lst)
+                (consp lst))
+           (not (< (car lst) a))))
+
+(defthm lessp-implies-<-car
+  (implies (and (lessp a lst)
+                (consp lst))
+           (< (car lst) a)))
+
+(defthm notlessp-qsort
+  (equal (notlessp a (qsort lst))
+         (notlessp a lst)))
+
+(defthm lessp-qsort
+  (equal (lessp a (qsort lst))
+         (lessp a lst)))
+
+
+(defthm lessp-implies-<-car-last
+  (implies (and (lessp a lst)
+                (consp lst))
+           (<= (car (last lst)) a)))
+
+(defthm orderedp-qsort
+  (orderedp (qsort lst)))
+
+; --------------- 11.15 ---------------
+
+(defun split-list (x)
+  (cond ((atom x) (mv nil nil))
+	((atom (cdr x)) (mv x nil))
+	(t (mv-let (a b)
+		   (split-list (cddr x))
+		   (mv (cons (car x) a) (cons (cadr x) b))))))
+
+(defun merge2 (x y)
+  (declare (xargs :measure (+ (acl2-count x) (acl2-count y))))
+  (cond ((atom x) y)
+	((atom y) x)
+	((< (car x) (car y))
+	 (cons (car x) (merge2 (cdr x) y)))
+	(t (cons (car y) (merge2 x (cdr y))))))
+
+(defthm split-list-smaller
+  (implies (and (consp x) (consp (cdr x)))
+           (and (< (acl2-count (car (split-list x)))
+                   (acl2-count x))
+                (< (acl2-count (mv-nth 1 (split-list x)))
+                   (acl2-count x)))))
+
+(defun mergesort (x)
+  (cond ((atom x) nil)
+	((atom (cdr x)) x)
+	(t (mv-let (a b)
+		   (split-list x)
+		   (merge2 (mergesort a) (mergesort b))))))
+
+(defun orderedp2 (x)
+  (cond ((atom (cdr x)) t)
+	(t (and (<= (car x) (cadr x))
+		(orderedp (cdr x))))))
+
+
+(defthm orderedp-mergesort
+  (orderedp (mergesort lst)))
+
+; --------------- 11.16 ---------------
+(defthm perm-append
+  (perm (append x y) (append y x)))
+
+(defthm perm-append-del
+  (implies (and (consp y)
+                (in (car y) x))
+           (perm (append (del (car y) x) y)
+                 (append x (cdr y)))))
+
+(defthm merge2-is-append
+  (perm (merge2 x y)
+        (append x y))
+  :hints (("Goal" :induct (merge2 x y))))
+
+(defthm perm-append-cons-2
+  (perm (append x (cons a y))
+        (cons a (append x y))))
+
+(defthm perm-append-split-list
+  (perm (append (car (split-list lst)) (mv-nth 1 (split-list lst)))
+        lst))
+
+(defthm perm-mergesort
+  (perm (mergesort lst) lst))
