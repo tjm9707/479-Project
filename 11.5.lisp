@@ -30,36 +30,40 @@
 
   (local (defthm perm-del
      (implies (in a y)
-              (equal (perm (del a y) x)
-                     (perm y (cons a x))))
+              (equal (perm y (cons a x))
+                     (perm (del a y) x)))
+            
   
  ; The only way I could get this to work is with a hint
      :hints (("Goal" :induct (perm y x)))))
 
 ; Prove (implies (and (perm x y) (perm y z)) (perm x z))
 
-(defthm perm-symmetric
+    ;x + y = y + x
+(defthm perm-switch
     (implies (perm x y) (perm y x)))))
-
-(local (defthm in-del-implies
+	
+	; x - a + y = x + y
+(local (defthm in-del
          (implies (in x (del a y))
                   (in x y))))
 
+	;x1 + z !=  x1 + y
 (local (defthm perm-in-same
 (IMPLIES (AND (NOT (IN X1 Z))
               (IN X1 Y))
          (NOT (PERM Y Z)))))
 
-(local (defthm del-del
+(local (defthm del2
          (equal (del a (del b x))
                 (del b (del a x)))))
 
-(local (defthm in-del
+(local (defthm in-del3
          (implies (not (equal a b))
                   (equal (in a (del b y))
                          (in a y)))))
 
-(local (defthm perm-del-del
+(local (defthm perm-del2
          (implies (and (in a y)
                        (in a z))
                   (equal (perm y z)
@@ -69,3 +73,17 @@
          (implies (and (perm x y) (perm y z)) (perm x z))))
 
 (defequiv perm)
+
+#|
+trans1 only seems to work on the online version of proofpad 
+
+:trans1 (defequiv perm)
+(DEFTHM PERM-IS-AN-EQUIVALENCE
+         (AND (BOOLEANP (PERM X Y))
+              (PERM X X)
+              (IMPLIES (PERM X Y) (PERM Y X))
+              (IMPLIES (AND (PERM X Y) (PERM Y Z))
+                       (PERM X Z)))
+         :RULE-CLASSES (:EQUIVALENCE))
+
+|#
